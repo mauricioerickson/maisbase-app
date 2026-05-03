@@ -1,0 +1,16 @@
+{
+    "name": "MaisBase - Gestão de Escolas de Futebol",
+    "short_name": "MaisBase",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#F8FAF5",
+    "theme_color": "#2E7D32",
+    "icons": [
+        {
+            "src": "https://cdn-icons-png.flaticon.com/512/33/33736.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ]
+}

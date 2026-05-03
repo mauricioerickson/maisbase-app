@@ -1,11 +1,107 @@
-@import 'tailwindcss';
+/* filepath: resources/css/app.css */
+
+@import "tailwindcss";
+
+/* 
+ * DaisyUI 5 + Tailwind v4 Integration
+ * Registramos o tema para que o DaisyUI gere os utilitários de componentes corretamente.
+ */
+@plugin "daisyui" {
+    themes: ["maisbase"];
+}
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
 @source '../**/*.blade.php';
 @source '../**/*.js';
+@source '../../vendor/robsontenorio/mary/src/View/Components/**/*.php';
 
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+    /* Mapeamento de Cores Elite Pitch para o Sistema de Design do Tailwind */
+    --color-primary: #2E7D32;         
+    --color-primary-content: #FFFFFF;
+    
+    --color-secondary: #1A1C19;       
+    --color-secondary-content: #FFFFFF;
+    
+    --color-accent: #FBC02D;          
+    --color-accent-content: #1A1C19;
+    
+    --color-surface: #F8FAF5;         
+    --color-text-base: #0F172A;       
+    
+    /* Tokens de Bordas Material Design 3 */
+    --radius-m3-lg: 12px;
+    --radius-m3-xl: 28px;
+
+    /* Elevações */
+    --shadow-elevation-1: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+
+    /* Tipografia */
+    --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+    --font-roboto: 'Roboto', sans-serif;
+}
+
+/* 
+ * Definição do Tema para o DaisyUI 5
+ * Utilizamos !important para garantir que os valores "Elite Pitch" prevaleçam sobre 
+ * quaisquer estilos internos do framework ou temas padrão.
+ */
+[data-theme="maisbase"] {
+    /* Primary: Pitch Green */
+    --color-primary: #2E7D32 !important;
+    --color-primary-content: #FFFFFF !important;
+    
+    /* Secondary: Stadium Dark */
+    --color-secondary: #1A1C19 !important;
+    --color-secondary-content: #FFFFFF !important;
+    
+    /* Accent: Victory Gold */
+    --color-accent: #FBC02D !important;
+    --color-accent-content: #1A1C19 !important;
+    
+    /* Base: Neutral Field */
+    --color-base-100: #F8FAF5 !important;
+    --color-base-content: #0F172A !important;
+    
+    /* Error */
+    --color-error: #B00020 !important;
+    --color-error-content: #FFFFFF !important;
+
+    /* Overrides de Componentes */
+    --radius-selector: 12px;
+    --radius-field: 12px;
+    --radius-box: 12px;
+    --radius-btn: 28px;
+}
+
+/* Estilos Globais */
+body {
+    background-color: var(--color-surface);
+    color: var(--color-text-base);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Forçar Accent em seleções e links se necessário */
+::selection {
+    background-color: var(--color-primary);
+    color: white;
+}
+
+/* Utilitários Customizados */
+.btn-m3 {
+    border-radius: var(--radius-m3-xl);
+    font-weight: 500;
+}
+
+.card-m3 {
+    background-color: white;
+    border-radius: var(--radius-m3-lg);
+    box-shadow: var(--shadow-elevation-1);
+    border: 1px solid #e2e8f0;
+}
+
+.stadium-glow {
+    background: radial-gradient(circle at 50% -20%, rgba(46, 125, 50, 0.12) 0%, rgba(26, 28, 25, 0) 70%);
 }

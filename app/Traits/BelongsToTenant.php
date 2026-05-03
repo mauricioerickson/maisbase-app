@@ -1,26 +1,31 @@
 <?php
 
+// filepath: app/Traits/BelongsToTenant.php
+
 namespace App\Traits;
 
 use Illuminate\Database\Eloquent\Builder;
+use App\Models\Tenant;
 
+/**
+ * Trait para isolamento absoluto de dados por Tenant.
+ * Injeta automaticamente o tenant_id e filtra todas as consultas.
+ */
 trait BelongsToTenant
 {
     /**
-     * Boot the belongs to tenant trait for a model.
-     *
-     * @return void
+     * Inicializa a trait no modelo Eloquent.
      */
     protected static function bootBelongsToTenant()
     {
-        // Add global scope to filter by tenant_id
+        // Escopo Global: Garante que o utilizador só veja dados da sua própria escola
         static::addGlobalScope('tenant', function (Builder $builder) {
             if (session()->has('tenant_id')) {
                 $builder->where('tenant_id', session()->get('tenant_id'));
             }
         });
 
-        // Automatically set tenant_id on creating
+        // Evento Creating: Preenche automaticamente o tenant_id ao criar um novo registro
         static::creating(function ($model) {
             if (session()->has('tenant_id')) {
                 $model->tenant_id = session()->get('tenant_id');
@@ -29,12 +34,10 @@ trait BelongsToTenant
     }
 
     /**
-     * Define the relationship to the Tenant model.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     * Relacionamento com o modelo Tenant.
      */
     public function tenant()
     {
-        return $this->belongsTo(\App\Models\Tenant::class);
+        return $this->belongsTo(Tenant::class);
     }
 }
