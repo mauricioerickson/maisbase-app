@@ -13,7 +13,7 @@
         <x-mary-table :rows="$users" :headers="[
             ['key' => 'name', 'label' => 'Nome'],
             ['key' => 'email', 'label' => 'E-mail'],
-            ['key' => 'user_role', 'label' => 'Cargo'],
+            ['key' => 'role', 'label' => 'Cargo'],
             ['key' => 'created_at', 'label' => 'Membro desde'],
         ]">
             @scope('cell_user_role', $user)

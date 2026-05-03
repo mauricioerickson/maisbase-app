@@ -44,6 +44,7 @@
                 {{-- Menu de Navegação --}}
                 <x-mary-menu activate-by-route>
                     <x-mary-menu-item title="Atletas" icon="o-users" link="/atletas" />
+                    <x-mary-menu-item title="Turmas" icon="o-academic-cap" link="/academic/categorias" />
                     <x-mary-menu-item title="Chamada" icon="o-clipboard-document-check" link="/campo/chamada" />
                     <x-mary-menu-item title="Saúde" icon="o-heart" link="/admin/saude" />
                     <x-mary-menu-item title="IA Nudges" icon="o-cpu-chip" link="/admin/ia-performance" />
@@ -94,12 +95,31 @@
                 </div>
 
                 {{-- Slot de Conteúdo Livewire/Blade --}}
-                <div class="min-h-[calc(100vh-200px)]">
+                <div class="min-h-[calc(100vh-200px)] relative">
                     @yield('content')
                     {{ $slot ?? '' }}
                 </div>
             </x-slot:content>
         </x-mary-main>
+
+        {{-- Global Loading Indicator (Fixed) --}}
+        <div x-data="{ show: false }" 
+             x-show="show" 
+             x-on:livewire:navigating.window="show = true" 
+             x-on:livewire:navigated.window="show = false"
+             x-on:livewire:request-start.window="show = true"
+             x-on:livewire:request-end.window="show = false"
+             x-transition.opacity
+             style="display: none;"
+             class="fixed inset-0 bg-secondary/40 backdrop-blur-sm z-[9999] flex items-center justify-center">
+            <div class="bg-white p-8 rounded-3xl shadow-2xl flex flex-col items-center gap-4 border border-white/20">
+                <div class="relative">
+                    <x-mary-loading class="text-primary loading-lg" />
+                    <div class="absolute inset-0 animate-ping rounded-full bg-primary/20"></div>
+                </div>
+                <span class="text-xs font-bold text-secondary uppercase tracking-widest animate-pulse">Aguarde, processando...</span>
+            </div>
+        </div>
 
         {{-- Bottom Navigation (Mobile) - Focado no polegar --}}
         <nav class="fixed bottom-0 w-full bg-white border-t border-slate-200 md:hidden z-50 h-16 flex justify-around items-center px-2 pb-safe">

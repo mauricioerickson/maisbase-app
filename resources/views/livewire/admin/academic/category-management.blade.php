@@ -8,7 +8,7 @@
             <h2 class="text-2xl font-bold text-secondary font-system uppercase tracking-tight">Estrutura Acadêmica</h2>
             <p class="text-sm text-slate-400 font-medium">Gerencie faixas etárias e horários de treinos</p>
         </div>
-        <x-mary-button label="Nova Categoria" icon="o-plus" class="btn-primary btn-m3" @click="$wire.showCategoryDrawer = true" />
+        <x-mary-button label="Nova Categoria" icon="o-plus" class="btn-primary btn-m3" wire:click="createCategory" />
     </div>
 
     {{-- Grid de Categorias --}}
@@ -22,9 +22,10 @@
                             Público: {{ $category->min_age ?? '0' }} a {{ $category->max_age ?? '99' }} anos
                         </p>
                     </div>
-                    <div class="flex gap-2">
-                        <x-mary-button icon="o-calendar-days" class="btn-ghost btn-sm text-primary" wire:click="openScheduleDrawer({{ $category->id }})" />
-                        <x-mary-button icon="o-trash" class="btn-ghost btn-sm text-error" wire:click="confirmDeleteCategory({{ $category->id }})" />
+                    <div class="flex gap-1">
+                        <x-mary-button icon="o-pencil" class="btn-ghost btn-xs text-slate-400" wire:click="editCategory({{ $category->id }})" />
+                        <x-mary-button icon="o-calendar-days" class="btn-ghost btn-xs text-primary" wire:click="openScheduleDrawer({{ $category->id }})" />
+                        <x-mary-button icon="o-trash" class="btn-ghost btn-xs text-error" wire:click="confirmDeleteCategory({{ $category->id }})" />
                     </div>
                 </div>
 
@@ -39,14 +40,17 @@
                                     <p class="text-[10px] text-slate-500 font-medium">{{ \Carbon\Carbon::parse($schedule->start_time)->format('H:i') }} - {{ \Carbon\Carbon::parse($schedule->end_time)->format('H:i') }}</p>
                                 </div>
                             </div>
-                            <div class="flex items-center gap-4">
+                            <div class="flex items-center gap-2">
                                 <div class="text-right">
                                     <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Ocupação</p>
                                     <p class="text-xs font-bold @if($schedule->occupancy >= $schedule->max_capacity) text-error @else text-primary @endif">
                                         {{ $schedule->occupancy }}/{{ $schedule->max_capacity }}
                                     </p>
                                 </div>
-                                <x-mary-button icon="o-x-mark" class="btn-ghost btn-xs text-error opacity-0 group-hover:opacity-100 transition-all" wire:click="confirmDeleteSchedule({{ $schedule->id }})" />
+                                <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                                    <x-mary-button icon="o-pencil" class="btn-ghost btn-xs text-slate-400" wire:click="editSchedule({{ $schedule->id }})" />
+                                    <x-mary-button icon="o-x-mark" class="btn-ghost btn-xs text-error" wire:click="confirmDeleteSchedule({{ $schedule->id }})" />
+                                </div>
                             </div>
                         </div>
                     @empty
@@ -60,8 +64,8 @@
     </div>
 
     {{-- Drawers --}}
-    <x-mary-drawer wire:model="showCategoryDrawer" title="Nova Categoria" right class="w-full md:w-[400px]">
-        <form wire:submit.prevent="saveCategory" class="space-y-4">
+    <x-mary-drawer wire:model="showCategoryDrawer" :title="$category_id ? 'Editar Categoria' : 'Nova Categoria'" right class="w-full md:w-[400px]">
+        <form wire:submit.prevent="saveCategory" class="space-y-4" id="category-form">
             <x-mary-input label="Nome (ex: Sub-13)" wire:model="name" icon="o-tag" required />
             <div class="grid grid-cols-2 gap-4">
                 <x-mary-input label="Idade Mínima" type="number" wire:model="min_age" icon="o-user" />
@@ -69,13 +73,13 @@
             </div>
             <x-slot:actions>
                 <x-mary-button label="Cancelar" @click="$wire.showCategoryDrawer = false" />
-                <x-mary-button label="Criar Categoria" icon="o-check" class="btn-primary" type="submit" spinner="saveCategory" />
+                <x-mary-button label="{{ $category_id ? 'Salvar Alterações' : 'Criar Categoria' }}" icon="o-check" class="btn-primary" type="submit" spinner="saveCategory" form="category-form" />
             </x-slot:actions>
         </form>
     </x-mary-drawer>
 
-    <x-mary-drawer wire:model="showScheduleDrawer" title="Adicionar Horário" right class="w-full md:w-[400px]">
-        <form wire:submit.prevent="saveSchedule" class="space-y-4">
+    <x-mary-drawer wire:model="showScheduleDrawer" :title="$schedule_id ? 'Editar Horário' : 'Adicionar Horário'" right class="w-full md:w-[400px]">
+        <form wire:submit.prevent="saveSchedule" class="space-y-4" id="schedule-form">
             <x-mary-select label="Dia da Semana" wire:model="day_of_week" icon="o-calendar" :options="[
                 ['id' => 'segunda', 'name' => 'Segunda-feira'],
                 ['id' => 'terca', 'name' => 'Terça-feira'],
@@ -95,7 +99,7 @@
 
             <x-slot:actions>
                 <x-mary-button label="Cancelar" @click="$wire.showScheduleDrawer = false" />
-                <x-mary-button label="Salvar Horário" icon="o-check" class="btn-primary" type="submit" spinner="saveSchedule" />
+                <x-mary-button label="{{ $schedule_id ? 'Salvar Alterações' : 'Salvar Horário' }}" icon="o-check" class="btn-primary" type="submit" spinner="saveSchedule" form="schedule-form" />
             </x-slot:actions>
         </form>
     </x-mary-drawer>

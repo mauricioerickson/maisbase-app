@@ -3,12 +3,43 @@
 
 <div class="space-y-8 relative pb-20">
     {{-- Header & Search --}}
-    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div class="flex-1 w-full max-w-md">
-            <x-mary-input placeholder="Buscar atleta pelo nome..." wire:model.live.debounce.300ms="search" icon="o-magnifying-glass" clearable />
+    <div class="space-y-4">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div class="flex-1 w-full max-w-md">
+                <x-mary-input placeholder="Buscar atleta pelo nome..." wire:model.live.debounce.300ms="search" icon="o-magnifying-glass" clearable />
+            </div>
+            <div class="hidden md:block">
+                <x-mary-button label="Novo Atleta" icon="o-plus" class="btn-primary btn-m3" wire:click="create" />
+            </div>
         </div>
-        <div class="hidden md:block">
-            <x-mary-button label="Novo Atleta" icon="o-plus" class="btn-primary btn-m3" @click="$wire.showAthleteDrawer = true" />
+
+        {{-- Filtros Avançados --}}
+        <div class="card-m3 p-4 bg-white shadow-sm border border-slate-100">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                <x-mary-select label="Categoria" wire:model.live="filter_category_id" icon="o-academic-cap" 
+                    :options="$categories" placeholder="Todas as categorias" clearable />
+                
+                <x-mary-select label="Dia da Aula" wire:model.live="filter_day" icon="o-calendar" 
+                    :options="[
+                        ['id' => 'segunda', 'name' => 'Segunda'],
+                        ['id' => 'terca', 'name' => 'Terça'],
+                        ['id' => 'quarta', 'name' => 'Quarta'],
+                        ['id' => 'quinta', 'name' => 'Quinta'],
+                        ['id' => 'sexta', 'name' => 'Sexta'],
+                        ['id' => 'sabado', 'name' => 'Sábado'],
+                        ['id' => 'domingo', 'name' => 'Domingo'],
+                    ]" placeholder="Todos os dias" clearable />
+
+                <x-mary-input label="Idade Específica" type="number" wire:model.live="filter_age" icon="o-user" placeholder="Ex: 12" clearable />
+
+                <div class="flex gap-2">
+                    <x-mary-button icon="o-x-mark" class="btn-ghost text-slate-400" title="Limpar Filtros" @click="$wire.set('filter_category_id', null); $wire.set('filter_day', null); $wire.set('filter_age', null); $wire.set('search', '')" />
+                    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">
+                        Resultados: <br>
+                        <span class="text-primary text-sm">{{ $athletes->total() }} Atletas</span>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -46,7 +77,7 @@
 
                 <div class="flex gap-2 pt-4 border-t border-slate-50">
                     <x-mary-button label="Matricular" icon="o-academic-cap" class="btn-ghost btn-sm text-primary flex-1" wire:click="openEnrollment({{ $athlete->id }})" />
-                    <x-mary-button icon="o-pencil" class="btn-ghost btn-sm text-slate-400" />
+                    <x-mary-button icon="o-pencil" class="btn-ghost btn-sm text-slate-400" wire:click="edit({{ $athlete->id }})" />
                 </div>
             </div>
         @empty
@@ -59,12 +90,12 @@
 
     {{-- FAB Mobile --}}
     <div class="fixed bottom-24 right-6 md:hidden">
-        <x-mary-button icon="o-plus" class="btn-primary rounded-full w-16 h-16 shadow-2xl" @click="$wire.showAthleteDrawer = true" />
+        <x-mary-button icon="o-plus" class="btn-primary rounded-full w-16 h-16 shadow-2xl" wire:click="create" />
     </div>
 
     {{-- Drawer Cadastro Atleta --}}
-    <x-mary-drawer wire:model="showAthleteDrawer" title="Ficha do Atleta" right class="w-full md:w-[500px]">
-        <form wire:submit.prevent="saveAthlete" class="space-y-6">
+    <x-mary-drawer wire:model="showAthleteDrawer" :title="$athlete_id ? 'Editar Ficha do Atleta' : 'Novo Atleta'" right class="w-full md:w-[500px]">
+        <form wire:submit.prevent="saveAthlete" class="space-y-6" id="athlete-form">
             {{-- Seção Atleta --}}
             <div class="space-y-4">
                 <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100 pb-2">Informações Esportivas</div>
@@ -99,7 +130,7 @@
 
             <x-slot:actions>
                 <x-mary-button label="Cancelar" @click="$wire.showAthleteDrawer = false" />
-                <x-mary-button label="Salvar Atleta" icon="o-check" class="btn-primary" type="submit" spinner="saveAthlete" />
+                <x-mary-button label="{{ $athlete_id ? 'Salvar Alterações' : 'Salvar Atleta' }}" icon="o-check" class="btn-primary" type="submit" spinner="saveAthlete" form="athlete-form" />
             </x-slot:actions>
         </form>
     </x-mary-drawer>
@@ -112,7 +143,7 @@
                 <p class="font-bold text-secondary">{{ $selected_athlete_for_enrollment->name }} ({{ $selected_athlete_for_enrollment->age }} anos)</p>
             </div>
 
-            <form wire:submit.prevent="enroll" class="space-y-4">
+            <form wire:submit.prevent="enroll" class="space-y-4" id="enrollment-form">
                 <x-mary-select label="Selecione o Horário" wire:model.live="selected_schedule_id" icon="o-calendar-days" 
                     :options="$schedules->map(fn($s) => ['id' => $s->id, 'name' => $s->category->name . ' - ' . strtoupper($s->day_of_week) . ' (' . $s->enrollments_count . '/' . $s->max_capacity . ')'])" 
                     placeholder="Escolha uma turma..." required />
@@ -127,7 +158,7 @@
 
                 <x-slot:actions>
                     <x-mary-button label="Cancelar" @click="$wire.showEnrollmentModal = false" />
-                    <x-mary-button label="Finalizar Matrícula" icon="o-check" class="btn-primary" type="submit" spinner="enroll" />
+                    <x-mary-button label="Finalizar Matrícula" icon="o-check" class="btn-primary" type="submit" spinner="enroll" form="enrollment-form" />
                 </x-slot:actions>
             </form>
         @endif

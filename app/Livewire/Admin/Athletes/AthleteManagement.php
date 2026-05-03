@@ -19,6 +19,9 @@ class AthleteManagement extends Component
 
     // Listagem
     public $search = '';
+    public $filter_category_id;
+    public $filter_day;
+    public $filter_age;
 
     // Form Atleta
     public $athlete_id;
@@ -47,18 +50,49 @@ class AthleteManagement extends Component
         $this->resetPage();
     }
 
+    public function create()
+    {
+        $this->reset(['athlete_id', 'name', 'birth_date', 'position', 'status', 'guardian_id', 'guardian_name', 'whatsapp_number', 'guardian_document', 'creatingNewGuardian']);
+        $this->showAthleteDrawer = true;
+    }
+
+    public function edit($id)
+    {
+        $athlete = Athlete::findOrFail($id);
+        $this->athlete_id = $athlete->id;
+        $this->name = $athlete->name;
+        $this->birth_date = $athlete->birth_date ? $athlete->birth_date->format('Y-m-d') : null;
+        $this->position = $athlete->position;
+        $this->status = $athlete->status;
+        $this->guardian_id = $athlete->guardian_id;
+        $this->creatingNewGuardian = false;
+        
+        $this->showAthleteDrawer = true;
+    }
+
     public function render()
     {
         $athletes = Athlete::with(['guardian', 'schedules.category'])
-            ->where('name', 'like', "%{$this->search}%")
+            ->when($this->search, fn($q) => $q->where('name', 'like', "%{$this->search}%"))
+            ->when($this->filter_category_id, function($q) {
+                $q->whereHas('schedules', fn($sq) => $sq->where('category_id', $this->filter_category_id));
+            })
+            ->when($this->filter_day, function($q) {
+                $q->whereHas('schedules', fn($sq) => $sq->where('day_of_week', $this->filter_day));
+            })
+            ->when($this->filter_age, function($q) {
+                $q->whereRaw("TIMESTAMPDIFF(YEAR, birth_date, CURDATE()) = ?", [$this->filter_age]);
+            })
             ->paginate(24);
 
         $guardians = Guardian::all();
+        $categories = \App\Models\Category::all();
         $schedules = Schedule::with('category')->withCount('enrollments')->get();
 
         return view('livewire.admin.athletes.athlete-management', [
             'athletes' => $athletes,
             'guardians' => $guardians,
+            'categories' => $categories,
             'schedules' => $schedules,
         ])->layout('layouts.app');
     }
@@ -113,12 +147,22 @@ class AthleteManagement extends Component
             'selected_schedule_id' => 'required|exists:schedules,id',
         ]);
 
-        $schedule = Schedule::find($this->selected_schedule_id);
         $athlete = $this->selected_athlete_for_enrollment;
+        $schedule = Schedule::find($this->selected_schedule_id);
 
         // Validação de Vagas
         if (!$schedule->hasVacancy()) {
             $this->error('Esta turma atingiu a capacidade máxima!');
+            return;
+        }
+
+        // Validação de Duplicidade
+        $alreadyEnrolled = Enrollment::where('athlete_id', $athlete->id)
+            ->where('schedule_id', $schedule->id)
+            ->exists();
+
+        if ($alreadyEnrolled) {
+            $this->error('Este atleta já está matriculado nesta turma!');
             return;
         }
 
