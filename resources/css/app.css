@@ -64,9 +64,17 @@
     --color-base-100: #F8FAF5 !important;
     --color-base-content: #0F172A !important;
     
+    /* Success */
+    --color-success: #2E7D32 !important;
+    --color-success-content: #FFFFFF !important;
+
     /* Error */
     --color-error: #B00020 !important;
     --color-error-content: #FFFFFF !important;
+
+    /* Info */
+    --color-info: #0288D1 !important;
+    --color-info-content: #FFFFFF !important;
 
     /* Overrides de Componentes */
     --radius-selector: 12px;

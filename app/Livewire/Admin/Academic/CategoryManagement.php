@@ -27,6 +27,9 @@ class CategoryManagement extends Component
 
     public bool $showCategoryDrawer = false;
     public bool $showScheduleDrawer = false;
+    public bool $showDeleteModal = false;
+    public $idToDelete;
+    public $typeToDelete; // 'category' or 'schedule'
 
     public function render()
     {
@@ -83,15 +86,30 @@ class CategoryManagement extends Component
         $this->success('Horário adicionado à grade!');
     }
 
-    public function deleteCategory($id)
+    public function confirmDeleteCategory($id)
     {
-        Category::findOrFail($id)->delete();
-        $this->success('Categoria removida.');
+        $this->idToDelete = $id;
+        $this->typeToDelete = 'category';
+        $this->showDeleteModal = true;
     }
 
-    public function deleteSchedule($id)
+    public function confirmDeleteSchedule($id)
     {
-        Schedule::findOrFail($id)->delete();
-        $this->success('Horário removido.');
+        $this->idToDelete = $id;
+        $this->typeToDelete = 'schedule';
+        $this->showDeleteModal = true;
+    }
+
+    public function delete()
+    {
+        if ($this->typeToDelete === 'category') {
+            Category::findOrFail($this->idToDelete)->delete();
+            $this->success('Categoria removida.');
+        } else {
+            Schedule::findOrFail($this->idToDelete)->delete();
+            $this->success('Horário removido.');
+        }
+
+        $this->showDeleteModal = false;
     }
 }

@@ -17,19 +17,31 @@ class StaffManagement extends Component
 {
     use Toast;
 
+    public $staffId;
     public $name;
     public $email;
     public $role = 'professor';
     public $password;
 
     public bool $showDrawer = false;
+    public bool $showDeleteModal = false;
+    public $idToDelete;
+
+    /**
+     * Reseta campos para novo cadastro.
+     */
+    public function create()
+    {
+        $this->reset(['name', 'email', 'role', 'password', 'staffId']);
+        $this->showDrawer = true;
+    }
 
     /**
      * Lista usuários vinculados ao tenant_id atual.
      */
     public function render()
     {
-        $users = User::all(); // O GlobalScope BelongsToTenant filtra automaticamente
+        $users = User::all();
 
         return view('livewire.admin.staff-management', [
             'users' => $users
@@ -37,42 +49,72 @@ class StaffManagement extends Component
     }
 
     /**
-     * Salva um novo membro do staff.
+     * Carrega dados para edição.
+     */
+    public function edit($id)
+    {
+        $user = User::findOrFail($id);
+        $this->staffId = $user->id;
+        $this->name = $user->name;
+        $this->email = $user->email;
+        $this->role = $user->role;
+        $this->password = ''; // Limpa senha na edição
+        
+        $this->showDrawer = true;
+    }
+
+    /**
+     * Salva ou atualiza um membro do staff.
      */
     public function save()
     {
         $this->validate([
             'name' => 'required|min:3',
-            'email' => 'required|email|unique:users,email',
+            'email' => 'required|email|unique:users,email,' . $this->staffId,
             'role' => 'required|in:admin,professor,financeiro',
-            'password' => 'required|min:8',
+            'password' => $this->staffId ? 'nullable|min:8' : 'required|min:8',
         ]);
 
-        User::create([
+        $data = [
             'name' => $this->name,
             'email' => $this->email,
             'role' => $this->role,
-            'password' => Hash::make($this->password),
-            // tenant_id é injetado automaticamente pela Trait BelongsToTenant
-        ]);
+        ];
 
-        $this->reset(['name', 'email', 'role', 'password', 'showDrawer']);
-        $this->success('Membro do Staff adicionado com sucesso!');
+        if ($this->password) {
+            $data['password'] = Hash::make($this->password);
+        }
+
+        User::updateOrCreate(
+            ['id' => $this->staffId],
+            $data
+        );
+
+        $this->reset(['name', 'email', 'role', 'password', 'showDrawer', 'staffId']);
+        $this->success($this->staffId ? 'Membro atualizado!' : 'Membro adicionado!');
+    }
+
+    public function confirmDelete($id)
+    {
+        $this->idToDelete = $id;
+        $this->showDeleteModal = true;
     }
 
     /**
      * Remove um membro do staff.
      */
-    public function delete($id)
+    public function delete()
     {
-        $user = User::findOrFail($id);
+        $user = User::findOrFail($this->idToDelete);
         
         if ($user->id === auth()->id()) {
             $this->error('Você não pode se auto-excluir!');
+            $this->showDeleteModal = false;
             return;
         }
 
         $user->delete();
+        $this->showDeleteModal = false;
         $this->success('Membro removido.');
     }
 }

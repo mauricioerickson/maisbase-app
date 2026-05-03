@@ -24,7 +24,7 @@
                     </div>
                     <div class="flex gap-2">
                         <x-mary-button icon="o-calendar-days" class="btn-ghost btn-sm text-primary" wire:click="openScheduleDrawer({{ $category->id }})" />
-                        <x-mary-button icon="o-trash" class="btn-ghost btn-sm text-error" wire:click="deleteCategory({{ $category->id }})" wire:confirm="Isso excluirá todos os horários vinculados. Confirmar?" />
+                        <x-mary-button icon="o-trash" class="btn-ghost btn-sm text-error" wire:click="confirmDeleteCategory({{ $category->id }})" />
                     </div>
                 </div>
 
@@ -46,7 +46,7 @@
                                         {{ $schedule->occupancy }}/{{ $schedule->max_capacity }}
                                     </p>
                                 </div>
-                                <x-mary-button icon="o-x-mark" class="btn-ghost btn-xs text-error opacity-0 group-hover:opacity-100 transition-all" wire:click="deleteSchedule({{ $schedule->id }})" />
+                                <x-mary-button icon="o-x-mark" class="btn-ghost btn-xs text-error opacity-0 group-hover:opacity-100 transition-all" wire:click="confirmDeleteSchedule({{ $schedule->id }})" />
                             </div>
                         </div>
                     @empty
@@ -99,4 +99,19 @@
             </x-slot:actions>
         </form>
     </x-mary-drawer>
+
+    {{-- Modal de Confirmação de Exclusão --}}
+    <x-mary-modal wire:model="showDeleteModal" title="Confirmar Exclusão" class="backdrop-blur">
+        <div class="mb-5">
+            @if($typeToDelete === 'category')
+                Tem certeza que deseja excluir esta categoria? Isso removerá permanentemente todos os horários vinculados a ela.
+            @else
+                Tem certeza que deseja remover este horário da grade?
+            @endif
+        </div>
+        <x-slot:actions>
+            <x-mary-button label="Cancelar" @click="$wire.showDeleteModal = false" />
+            <x-mary-button label="Excluir" icon="o-trash" class="btn-error" wire:click="delete" spinner="delete" />
+        </x-slot:actions>
+    </x-mary-modal>
 </div>

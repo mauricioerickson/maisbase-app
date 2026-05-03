@@ -129,5 +129,6 @@
     @endauth
 
     @livewireScripts
+    <x-mary-toast />
 </body>
 </html>
