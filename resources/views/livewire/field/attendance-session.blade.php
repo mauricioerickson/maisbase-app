@@ -16,17 +16,21 @@
     @if($selected_schedule_id)
         {{-- Lista de Atletas para Chamada --}}
         <div class="space-y-4">
-            <div class="flex justify-between items-center px-2">
-                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-[0.2em]">Lista de Atletas</h3>
-                <span class="text-[10px] font-bold text-primary uppercase">{{ count($athletes) }} Alunos Inscritos</span>
+            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 px-2">
+                <div>
+                    <h3 class="text-xs font-bold text-slate-500 uppercase tracking-[0.2em]">Lista de Atletas</h3>
+                    <span class="text-[10px] font-bold text-primary uppercase">{{ count($athletes) }} Alunos Inscritos</span>
+                </div>
+                <x-mary-button label="Marcar todos presentes" icon="o-check-circle" class="btn-primary btn-sm min-h-12" wire:click="markAllPresent" spinner="markAllPresent" />
             </div>
 
             <div class="grid grid-cols-1 gap-3">
                 @foreach($athletes as $athlete)
+                    @php($isCompliant = $athlete->isCompliant())
                     <div @class([
                         'card-m3 p-4 flex items-center justify-between transition-all border-l-8',
                         'bg-white border-primary shadow-md' => $attendances[$athlete->id]['present'],
-                        'bg-slate-50 border-slate-200 opacity-70' => !$attendances[$athlete->id]['present'],
+                        'bg-white border-slate-500' => !$attendances[$athlete->id]['present'],
                     ])>
                         <div class="flex items-center gap-4">
                             {{-- Foto/Avatar --}}
@@ -34,13 +38,13 @@
                                 <div @class([
                                     'w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg',
                                     'bg-primary text-white' => $attendances[$athlete->id]['present'],
-                                    'bg-slate-200 text-slate-400' => !$attendances[$athlete->id]['present'],
+                                    'bg-slate-700 text-white' => !$attendances[$athlete->id]['present'],
                                 ])>
                                     {{ substr($athlete->name, 0, 1) }}
                                 </div>
                                 
                                 {{-- Indicador de Compliance --}}
-                                @if(!$athlete->isCompliant())
+                                @if(!$isCompliant)
                                     <div class="absolute -top-1 -right-1 w-5 h-5 bg-error rounded-full border-2 border-white flex items-center justify-center text-white" title="Pendência de Saúde ou Financeira">
                                         <span class="material-symbols-outlined text-[10px]">lock</span>
                                     </div>
@@ -56,15 +60,15 @@
                         </div>
 
                         <div class="flex items-center gap-4">
-                            @if(!$attendances[$athlete->id]['present'] && !$athlete->isCompliant())
-                                <x-mary-button icon="o-chat-bubble-bottom-center-text" class="btn-ghost btn-sm text-slate-400" @click="$prompt('Justificativa para {$athlete->name}', '', (val) => $wire.set('attendances.{$athlete->id}.justification', val))" />
+                            @if(!$attendances[$athlete->id]['present'] && !$isCompliant)
+                                <x-mary-button icon="o-chat-bubble-bottom-center-text" class="btn-ghost btn-sm text-slate-700" @click="$prompt('Justificativa para {$athlete->name}', '', (val) => $wire.set('attendances.{$athlete->id}.justification', val))" />
                             @endif
 
                             <button wire:click="togglePresence({{ $athlete->id }})" 
                                 @class([
                                     'w-12 h-12 rounded-m3-lg flex items-center justify-center transition-all shadow-sm',
                                     'bg-primary text-white' => $attendances[$athlete->id]['present'],
-                                    'bg-white text-slate-300 border border-slate-100' => !$attendances[$athlete->id]['present'],
+                                    'bg-white text-slate-800 border-2 border-slate-700' => !$attendances[$athlete->id]['present'],
                                 ])>
                                 <span class="material-symbols-outlined text-2xl">
                                     {{ $attendances[$athlete->id]['present'] ? 'check_circle' : 'radio_button_unchecked' }}

@@ -13,6 +13,7 @@
     <link rel="manifest" href="/manifest.json">
     
     <title>@yield('title', 'MaisBase - Gestão de Elite')</title>
+    @yield('meta')
 
     <!-- Fontes Profissionais -->
     <link rel="preconnect" href="https://fonts.googleapis.com">

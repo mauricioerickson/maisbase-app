@@ -21,7 +21,7 @@ trait BelongsToTenant
         // Escopo Global: Garante que o utilizador só veja dados da sua própria escola
         static::addGlobalScope('tenant', function (Builder $builder) {
             if (session()->has('tenant_id')) {
-                $builder->where('tenant_id', session()->get('tenant_id'));
+                $builder->where($builder->qualifyColumn('tenant_id'), session()->get('tenant_id'));
             }
         });
 

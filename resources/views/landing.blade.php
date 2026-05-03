@@ -3,6 +3,15 @@
 
 @section('title', 'MaisBase - Gestão para Escolas de Futebol em ' . ($cidade ?? 'Sua Região'))
 
+@section('meta')
+    <meta name="description" content="{{ $metaDescription ?? 'MaisBase e o sistema de gestao para escolas de futebol com financeiro, chamada e IA.' }}">
+    <link rel="canonical" href="{{ $canonicalUrl ?? url()->current() }}">
+    <meta property="og:title" content="MaisBase - Gestao para Escolas de Futebol em {{ $cidade ?? 'Sua Regiao' }}">
+    <meta property="og:description" content="{{ $metaDescription ?? 'MaisBase e o sistema de gestao para escolas de futebol com financeiro, chamada e IA.' }}">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ $canonicalUrl ?? url()->current() }}">
+@endsection
+
 @section('content')
 <div class="bg-secondary min-h-screen text-white selection:bg-primary selection:text-white">
     <!-- Navbar Dinâmica -->

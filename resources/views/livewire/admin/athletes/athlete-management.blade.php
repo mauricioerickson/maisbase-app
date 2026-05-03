@@ -12,6 +12,10 @@
         </div>
     </div>
 
+    <div>
+        {{ $athletes->links() }}
+    </div>
+
     {{-- Grid de Atletas --}}
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         @forelse($athletes as $athlete)
@@ -110,7 +114,7 @@
 
             <form wire:submit.prevent="enroll" class="space-y-4">
                 <x-mary-select label="Selecione o Horário" wire:model.live="selected_schedule_id" icon="o-calendar-days" 
-                    :options="$schedules->map(fn($s) => ['id' => $s->id, 'name' => $s->category->name . ' - ' . strtoupper($s->day_of_week) . ' (' . $s->occupancy . '/' . $s->max_capacity . ')'])" 
+                    :options="$schedules->map(fn($s) => ['id' => $s->id, 'name' => $s->category->name . ' - ' . strtoupper($s->day_of_week) . ' (' . $s->enrollments_count . '/' . $s->max_capacity . ')'])" 
                     placeholder="Escolha uma turma..." required />
 
                 <div class="bg-amber-50 p-4 rounded-lg border border-amber-200 space-y-3">

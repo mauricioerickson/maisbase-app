@@ -12,6 +12,7 @@ class Athlete extends Model
     protected $fillable = [
         'tenant_id',
         'guardian_id',
+        'subscription_plan_id',
         'name',
         'birth_date',
         'position',
@@ -51,6 +52,11 @@ class Athlete extends Model
         return $this->hasMany(Invoice::class);
     }
 
+    public function subscriptionPlan()
+    {
+        return $this->belongsTo(SubscriptionPlan::class);
+    }
+
     public function medicalClearances()
     {
         return $this->hasMany(MedicalClearance::class);
@@ -72,7 +78,18 @@ class Athlete extends Model
     public function isCompliant()
     {
         $hasValidMedical = $this->latestMedicalClearance && !$this->latestMedicalClearance->isExpired();
-        $hasNoPendingInvoices = !$this->invoices()->where('status', 'pending')->where('due_date', '<', now())->exists();
+
+        if ($this->relationLoaded('invoices')) {
+            $hasNoPendingInvoices = $this->invoices
+                ->whereIn('status', ['pending', 'overdue'])
+                ->filter(fn (Invoice $invoice) => $invoice->due_date->isBefore(now()->startOfDay()))
+                ->isEmpty();
+        } else {
+            $hasNoPendingInvoices = !$this->invoices()
+                ->whereIn('status', ['pending', 'overdue'])
+                ->where('due_date', '<', now())
+                ->exists();
+        }
 
         return $hasValidMedical && $hasNoPendingInvoices;
     }

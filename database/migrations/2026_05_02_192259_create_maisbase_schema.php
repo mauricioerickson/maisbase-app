@@ -26,6 +26,7 @@ return new class extends Migration
             $table->enum('nudge_tone', ['amigavel', 'formal'])->default('amigavel');
             $table->boolean('active')->default(true);
             $table->timestamps();
+            $table->softDeletes();
         });
 
         // 2. Users (Altering existing table from Laravel)

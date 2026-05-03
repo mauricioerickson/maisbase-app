@@ -5,6 +5,7 @@
 namespace App\Livewire\Admin\Athletes;
 
 use Livewire\Component;
+use Livewire\WithPagination;
 use App\Models\Athlete;
 use App\Models\Guardian;
 use App\Models\Schedule;
@@ -14,7 +15,7 @@ use Illuminate\Support\Facades\DB;
 
 class AthleteManagement extends Component
 {
-    use Toast;
+    use Toast, WithPagination;
 
     // Listagem
     public $search = '';
@@ -41,14 +42,19 @@ class AthleteManagement extends Component
     public bool $showAthleteDrawer = false;
     public bool $showEnrollmentModal = false;
 
+    public function updatingSearch()
+    {
+        $this->resetPage();
+    }
+
     public function render()
     {
         $athletes = Athlete::with(['guardian', 'schedules.category'])
             ->where('name', 'like', "%{$this->search}%")
-            ->get();
+            ->paginate(24);
 
         $guardians = Guardian::all();
-        $schedules = Schedule::with('category')->get();
+        $schedules = Schedule::with('category')->withCount('enrollments')->get();
 
         return view('livewire.admin.athletes.athlete-management', [
             'athletes' => $athletes,

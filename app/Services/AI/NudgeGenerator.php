@@ -1,15 +1,13 @@
 <?php
 
-// filepath: app/Services/AI/NudgeGenerator.php
-
 namespace App\Services\AI;
 
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 /**
- * Motor de Inteligência Artificial para geração de Nudges personalizados.
- * Utiliza o Google Gemini 1.5 Flash.
+ * Motor de Inteligencia Artificial para geracao de nudges personalizados.
+ * Utiliza o Google Gemini 1.5 Flash quando a chave esta configurada.
  */
 class NudgeGenerator
 {
@@ -21,15 +19,14 @@ class NudgeGenerator
         $this->apiKey = env('GEMINI_API_KEY');
     }
 
-    /**
-     * Gera uma mensagem personalizada baseada no contexto.
-     */
     public function generate($context)
     {
+        $context = $this->normalizeContext($context);
         $prompt = $this->buildPrompt($context);
 
         if (!$this->apiKey) {
-            Log::warning("Gemini API Key não configurada. Usando fallback.");
+            Log::warning('Gemini API Key nao configurada. Usando fallback.');
+
             return $this->getFallbackMessage($context);
         }
 
@@ -38,44 +35,73 @@ class NudgeGenerator
                 'contents' => [
                     [
                         'parts' => [
-                            ['text' => $prompt]
-                        ]
-                    ]
-                ]
+                            ['text' => $prompt],
+                        ],
+                    ],
+                ],
             ]);
 
             $data = $response->json();
-            return $data['candidates'][0]['content']['parts'][0]['text'] ?? $this->getFallbackMessage($context);
 
+            return $data['candidates'][0]['content']['parts'][0]['text'] ?? $this->getFallbackMessage($context);
         } catch (\Exception $e) {
-            Log::error("Erro no Gemini AI: " . $e->getMessage());
+            Log::error('Erro no Gemini AI: ' . $e->getMessage());
+
             return $this->getFallbackMessage($context);
         }
     }
 
-    /**
-     * Monta o prompt estruturado para a IA.
-     */
     protected function buildPrompt($context)
     {
-        $tone = $context['tone'] ?? 'amigável';
-        
-        return "Você é o assistente virtual da escola de futebol {$context['arena_name']}. 
-                Escreva uma mensagem no WhatsApp para o pai/mãe {$context['guardian_name']} sobre o atleta {$context['athlete_name']}. 
-                Assunto: {$context['subject']}. 
+        $tone = $context['tone'] ?? 'amigavel';
+
+        return "Voce e o assistente virtual da escola de futebol {$context['arena_name']}.
+                Escreva uma mensagem no WhatsApp para o pai/mae {$context['guardian_name']} sobre o atleta {$context['athlete_name']}.
+                Assunto: {$context['subject']}.
                 Contexto extra: {$context['extra']}.
                 Tom da mensagem: {$tone}.
-                REGRAS: 
-                1. Seja breve e use emojis de futebol. 
-                2. Não use placeholders como [NOME]. 
-                3. Gere variações criativas para evitar SPAM.";
+                REGRAS:
+                1. Seja breve, humano e use no maximo um emoji de futebol.
+                2. Nao use placeholders como [NOME].
+                3. Inclua naturalmente o nome do atleta, o vencimento quando existir e o nome da escola.
+                4. Varie abertura, ordem das frases e chamada final para evitar padrao repetitivo de WhatsApp.
+                5. Evite tom ameacador; prefira ajuda, organizacao e proximo passo claro.";
     }
 
-    /**
-     * Mensagem de fallback caso a IA falhe.
-     */
     protected function getFallbackMessage($context)
     {
-        return "Olá {$context['guardian_name']}, tudo bem? Passando para lembrar sobre {$context['subject']} do {$context['athlete_name']}. Abraços da equipe {$context['arena_name']}! ⚽";
+        $templates = [
+            'Oi, {guardian_name}. Tudo certo? A {arena_name} lembra que {athlete_name} tem {subject}. Se precisar, o PIX esta no portal.',
+            '{guardian_name}, passando rapidinho pela {arena_name}: {subject} de {athlete_name}. Qualquer duvida, estamos por aqui.',
+            'Bom dia, {guardian_name}. Para manter tudo organizado na {arena_name}, fica o lembrete de {subject} do {athlete_name}.',
+            'Ola, {guardian_name}. A mensalidade do {athlete_name} esta no radar da {arena_name}: {subject}. Obrigado pela parceria.',
+            '{guardian_name}, tudo bem? A {arena_name} separou este lembrete sobre {subject} do {athlete_name}.',
+            'Oi, {guardian_name}. So para facilitar a rotina: {athlete_name} tem {subject} na {arena_name}.',
+            '{guardian_name}, aqui e a equipe {arena_name}. Lembrete amigavel: {subject} relacionado ao {athlete_name}.',
+            'Tudo bem, {guardian_name}? A {arena_name} esta conferindo as mensalidades e viu {subject} do {athlete_name}.',
+            'Oi, {guardian_name}. Para o {athlete_name} seguir com tudo em dia na {arena_name}, fica o aviso: {subject}.',
+            '{guardian_name}, mensagem rapida da {arena_name}: {subject} do {athlete_name}. Obrigado por cuidar disso com a gente.',
+        ];
+
+        $index = abs(crc32(($context['guardian_name'] ?? '') . ($context['athlete_name'] ?? '') . ($context['subject'] ?? ''))) % count($templates);
+        $message = $templates[$index];
+
+        foreach (['guardian_name', 'arena_name', 'athlete_name', 'subject'] as $key) {
+            $message = str_replace("{{$key}}", $context[$key] ?? '', $message);
+        }
+
+        return $message;
+    }
+
+    private function normalizeContext(array $context): array
+    {
+        foreach (['arena_name', 'extra', 'subject'] as $key) {
+            if (isset($context[$key])) {
+                $context[$key] = str_replace('Rio Preto', 'Sao Jose do Rio Preto', $context[$key]);
+                $context[$key] = str_replace('São José do Rio Preto', 'Sao Jose do Rio Preto', $context[$key]);
+            }
+        }
+
+        return $context;
     }
 }

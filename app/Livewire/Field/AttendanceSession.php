@@ -37,7 +37,12 @@ class AttendanceSession extends Component
         
         $athletes = [];
         if ($this->selected_schedule_id) {
-            $schedule = Schedule::with('enrollments.athlete.latestMedicalClearance')->find($this->selected_schedule_id);
+            $schedule = Schedule::with([
+                'enrollments.athlete.latestMedicalClearance',
+                'enrollments.athlete.invoices' => fn ($query) => $query
+                    ->whereIn('status', ['pending', 'overdue'])
+                    ->where('due_date', '<', now()),
+            ])->find($this->selected_schedule_id);
             $athletes = $schedule->enrollments->map(fn($e) => $e->athlete);
 
             // Carregar presenças já marcadas se existirem
@@ -67,7 +72,12 @@ class AttendanceSession extends Component
      */
     public function togglePresence($athleteId)
     {
-        $athlete = Athlete::find($athleteId);
+        $athlete = Athlete::with([
+            'latestMedicalClearance',
+            'invoices' => fn ($query) => $query
+                ->whereIn('status', ['pending', 'overdue'])
+                ->where('due_date', '<', now()),
+        ])->find($athleteId);
         $currentState = $this->attendances[$athleteId]['present'];
 
         // Se estiver tentando marcar presença (falso -> verdadeiro)
@@ -100,5 +110,49 @@ class AttendanceSession extends Component
         );
 
         $this->success('Registro de presença atualizado.');
+    }
+
+    public function markAllPresent()
+    {
+        if (!$this->selected_schedule_id) {
+            return;
+        }
+
+        $schedule = Schedule::with([
+            'enrollments.athlete.latestMedicalClearance',
+            'enrollments.athlete.invoices' => fn ($query) => $query
+                ->whereIn('status', ['pending', 'overdue'])
+                ->where('due_date', '<', now()),
+        ])->find($this->selected_schedule_id);
+
+        $rows = $schedule->enrollments
+            ->map(function ($enrollment) {
+                $athlete = $enrollment->athlete;
+
+                $this->attendances[$athlete->id] = [
+                    'present' => true,
+                    'justification' => $this->attendances[$athlete->id]['justification'] ?? '',
+                ];
+
+                return [
+                    'tenant_id' => $athlete->tenant_id,
+                    'athlete_id' => $athlete->id,
+                    'schedule_id' => $this->selected_schedule_id,
+                    'date' => $this->date,
+                    'is_present' => true,
+                    'justification' => $this->attendances[$athlete->id]['justification'],
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
+            })
+            ->all();
+
+        Attendance::upsert(
+            $rows,
+            ['athlete_id', 'schedule_id', 'date'],
+            ['is_present', 'justification', 'updated_at']
+        );
+
+        $this->success('Todos os atletas foram marcados como presentes.');
     }
 }

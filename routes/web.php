@@ -18,9 +18,18 @@ Route::get('/solucoes/{cidade?}', function ($cidade = null) {
         $cityName = 'Sua Região';
     } else {
         // Formatação simples para o nome da cidade
-        $cityName = Str::title(str_replace('-', ' ', $cidade));
+        $cityName = match ($cidade) {
+            'rio-preto', 'sao-jose-do-rio-preto' => 'Sao Jose do Rio Preto',
+            default => Str::title(str_replace('-', ' ', $cidade)),
+        };
     }
-    return view('landing', ['cidade' => $cityName]);
+    $metaDescription = "MaisBase e o sistema de gestao para escolas de futebol em {$cityName}: atletas, chamadas, financeiro, PIX e nudges com IA para reduzir inadimplencia.";
+
+    return view('landing', [
+        'cidade' => $cityName,
+        'metaDescription' => $metaDescription,
+        'canonicalUrl' => url('/solucoes/' . ($cidade ?: '')),
+    ]);
 })->name('landing');
 
 /**
