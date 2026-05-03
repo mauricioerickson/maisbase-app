@@ -95,7 +95,7 @@ class AttendanceSession extends Component
     /**
      * Persiste a presença no banco de dados.
      */
-    public function saveAttendance($athleteId)
+    public function saveAttendance($athleteId, $silent = false)
     {
         Attendance::updateOrCreate(
             [
@@ -109,7 +109,9 @@ class AttendanceSession extends Component
             ]
         );
 
-        $this->success('Registro de presença atualizado.');
+        if (!$silent) {
+            $this->success('Presença atualizada.');
+        }
     }
 
     public function markAllPresent()

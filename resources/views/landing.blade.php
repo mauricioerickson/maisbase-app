@@ -1,12 +1,12 @@
 <!-- filepath: resources/views/landing.blade.php -->
 @extends('layouts.app')
 
-@section('title', 'MaisBase - Gestão para Escolas de Futebol em ' . ($cidade ?? 'Sua Região'))
+@section('title', $ogTitle ?? 'MaisBase - Gestão para Escolas de Futebol')
 
 @section('meta')
     <meta name="description" content="{{ $metaDescription ?? 'MaisBase e o sistema de gestao para escolas de futebol com financeiro, chamada e IA.' }}">
     <link rel="canonical" href="{{ $canonicalUrl ?? url()->current() }}">
-    <meta property="og:title" content="MaisBase - Gestao para Escolas de Futebol em {{ $cidade ?? 'Sua Regiao' }}">
+    <meta property="og:title" content="{{ $ogTitle ?? 'MaisBase - Gestao de Elite' }}">
     <meta property="og:description" content="{{ $metaDescription ?? 'MaisBase e o sistema de gestao para escolas de futebol com financeiro, chamada e IA.' }}">
     <meta property="og:type" content="website">
     <meta property="og:url" content="{{ $canonicalUrl ?? url()->current() }}">

@@ -15,19 +15,27 @@ Route::get('/', function () {
 
 Route::get('/solucoes/{cidade?}', function ($cidade = null) {
     if (!$cidade) {
-        $cityName = 'Sua Região';
+        $cityName = 'Sua Regiao';
+        $displayCity = 'Sua Escola de Futebol';
     } else {
-        // Formatação simples para o nome da cidade
+        // Expansão dinâmica de nomes de cidades e SEO Local
         $cityName = match ($cidade) {
             'rio-preto', 'sao-jose-do-rio-preto' => 'Sao Jose do Rio Preto',
+            'bauru' => 'Bauru e Regiao',
+            'rio', 'rio-de-janeiro' => 'Rio de Janeiro',
             default => Str::title(str_replace('-', ' ', $cidade)),
         };
+        $displayCity = "Escolas de Futebol em {$cityName}";
     }
-    $metaDescription = "MaisBase e o sistema de gestao para escolas de futebol em {$cityName}: atletas, chamadas, financeiro, PIX e nudges com IA para reduzir inadimplencia.";
+
+    $metaDescription = "MaisBase: O sistema de gestao numero 1 para {$displayCity}. Automeze chamadas, financeiro, PIX e reduza a inadimplencia com nossa IA de Nudges.";
+    $ogTitle = "MaisBase - Gestao de Elite para Futebol em {$cityName}";
 
     return view('landing', [
         'cidade' => $cityName,
+        'displayCity' => $displayCity,
         'metaDescription' => $metaDescription,
+        'ogTitle' => $ogTitle,
         'canonicalUrl' => url('/solucoes/' . ($cidade ?: '')),
     ]);
 })->name('landing');

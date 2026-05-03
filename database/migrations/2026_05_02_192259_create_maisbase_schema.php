@@ -116,6 +116,9 @@ return new class extends Migration
             $table->text('pix_copy_paste')->nullable();
             $table->timestamp('paid_at')->nullable();
             $table->timestamps();
+
+            // Indice composto para performance do Dashboard Financeiro
+            $table->index(['tenant_id', 'status', 'due_date']);
         });
 
         // 10. Webhook Logs
@@ -138,6 +141,8 @@ return new class extends Migration
             $table->timestamps();
             
             $table->unique(['athlete_id', 'schedule_id', 'date']);
+            // Indice composto para performance de relatorios de presenca por tenant
+            $table->index(['tenant_id', 'date', 'is_present']);
         });
 
         // 12. Atestados Médicos (Medical Clearances)

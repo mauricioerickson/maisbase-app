@@ -14,31 +14,27 @@ use Illuminate\Support\Facades\Log;
  */
 class WebhookController extends Controller
 {
-    /**
-     * Processa o webhook do gateway (ex: Asaas, Mercado Pago).
-     */
     public function handle(Request $request, $gateway)
     {
+        // 1. Verificação de Assinatura HMAC (Fails gracefully with 401 if secret missing or mismatch)
         if (!$this->hasValidSignature($request)) {
-            Log::warning('Webhook de pagamento rejeitado por assinatura invalida.', [
-                'gateway' => $gateway,
-                'external_id' => $request->input('payment.id') ?? $request->input('id'),
-            ]);
-
+            Log::warning("Webhook [{$gateway}]: Tentativa de acesso sem assinatura valida ou secreta ausente.");
             return response()->json(['status' => 'unauthorized'], 401);
         }
 
-        // 1. Logar o payload bruto para auditoria
+        // 2. Sanitização de Payload para LGPD (Remover dados sensiveis antes do log)
+        $payload = $request->except(['credit_card', 'document', 'cpf', 'address', 'phone']);
+        
+        // 3. Log para Auditoria Técnica (Sem dados sensiveis)
         WebhookLog::create([
             'gateway' => $gateway,
-            'payload' => $request->all(),
+            'payload' => $payload,
         ]);
 
-        // 2. Localizar a Invoice (simulando estrutura do Asaas: $request->event e $request->payment->id)
-        // Aqui deve-se adaptar para o gateway real escolhido.
         $externalId = $request->input('payment.id') ?? $request->input('id');
         $event = $request->input('event');
 
+        // 4. Filtro de Eventos de Pagamento
         if (!in_array($event, ['PAYMENT_RECEIVED', 'PAYMENT_CONFIRMED', 'PAYMENT_APPROVED'], true)) {
             return response()->json(['status' => 'ignored', 'message' => 'Evento nao financeiro'], 200);
         }
@@ -47,21 +43,23 @@ class WebhookController extends Controller
             $invoice = Invoice::where('external_id', $externalId)->first();
 
             if ($invoice) {
+                // 5. Idempotência Granular: Evitar reprocessamento de faturas já pagas
                 if ($invoice->status === 'paid') {
-                    return response()->json(['status' => 'success', 'message' => 'Pagamento ja confirmado']);
+                    return response()->json(['status' => 'success', 'message' => 'Fatura ja processada anteriormente']);
                 }
 
-                // 3. Atualizar status se o evento for de pagamento recebido
+                // 6. Atualização Segura
                 $invoice->update([
                     'status' => 'paid',
                     'paid_at' => now(),
                 ]);
 
+                Log::info("Webhook [{$gateway}]: Fatura {$invoice->id} marcada como PAGA via automacao.");
                 return response()->json(['status' => 'success', 'message' => 'Pagamento Confirmado']);
             }
         }
 
-        return response()->json(['status' => 'ignored'], 200);
+        return response()->json(['status' => 'not_found'], 200);
     }
 
     private function hasValidSignature(Request $request): bool
