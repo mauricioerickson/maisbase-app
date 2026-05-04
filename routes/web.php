@@ -62,15 +62,18 @@ Route::get('/logout', function () {
  */
 Route::middleware(['auth', \App\Http\Middleware\IdentifyTenant::class])->group(function () {
     Route::get('/dashboard', \App\Livewire\Admin\Dashboard::class)->name('dashboard');
-    Route::get('/equipe', \App\Livewire\Admin\StaffManagement::class)->name('staff');
-    Route::get('/academic/categorias', \App\Livewire\Admin\Academic\CategoryManagement::class)->name('academic.categories');
     Route::get('/atletas', \App\Livewire\Admin\Athletes\AthleteManagement::class)->name('athletes');
-    Route::get('/financeiro/planos', \App\Livewire\Admin\Financial\PlanManagement::class)->name('financial.plans');
-    Route::get('/financeiro/fluxo-caixa', \App\Livewire\Admin\Financial\Dashboard::class)->name('financial.dashboard');
-    Route::get('/financeiro/previsao', \App\Livewire\Admin\Financial\RevenueForecast::class)->name('financial.forecast');
+    Route::get('/admin/whatsapp', \App\Livewire\Admin\Config\WhatsAppConfig::class)->name('admin.whatsapp');
+    Route::get('/academic/categorias', \App\Livewire\Admin\Academic\CategoryManagement::class)->name('academic.categories');
     Route::get('/campo/chamada', \App\Livewire\Field\AttendanceSession::class)->name('field.attendance');
     Route::get('/admin/saude', \App\Livewire\Admin\Health\MedicalManagement::class)->name('admin.health');
     Route::get('/admin/ia-performance', \App\Livewire\Admin\Reports\AiPerformance::class)->name('admin.ai');
-    
-    // Outras rotas administrativas virão aqui
+
+    // Rotas Restritas: Apenas Admin e Financeiro
+    Route::middleware('role:admin,financeiro')->group(function () {
+        Route::get('/equipe', \App\Livewire\Admin\StaffManagement::class)->name('staff');
+        Route::get('/financeiro/planos', \App\Livewire\Admin\Financial\PlanManagement::class)->name('financial.plans');
+        Route::get('/financeiro/fluxo-caixa', \App\Livewire\Admin\Financial\Dashboard::class)->name('financial.dashboard');
+        Route::get('/financeiro/previsao', \App\Livewire\Admin\Financial\RevenueForecast::class)->name('financial.forecast');
+    });
 });

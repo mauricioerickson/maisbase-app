@@ -11,6 +11,10 @@ class User extends Authenticatable
 {
     use HasFactory, Notifiable, BelongsToTenant;
 
+    public const ROLE_ADMIN = 'admin';
+    public const ROLE_FINANCIAL = 'financeiro';
+    public const ROLE_STAFF = 'equipe';
+
     protected $fillable = [
         'tenant_id',
         'name',
@@ -18,6 +22,18 @@ class User extends Authenticatable
         'password',
         'role',
     ];
+
+    /**
+     * Verifica se o usuário possui um dos papéis informados.
+     */
+    public function hasRole(array|string $roles): bool
+    {
+        if (is_array($roles)) {
+            return in_array($this->role, $roles);
+        }
+
+        return $this->role === $roles;
+    }
 
     protected $hidden = [
         'password',

@@ -14,25 +14,37 @@
             </div>
         </div>
 
-        <div class="card-m3 p-6 flex items-center gap-6 border-l-4 border-primary">
-            <div class="w-14 h-14 bg-primary/10 rounded-m3-lg flex items-center justify-center text-primary">
-                <span class="material-symbols-outlined text-3xl">payments</span>
+        @if(auth()->user()->hasRole(['admin', 'financeiro']))
+            <div class="card-m3 p-6 flex items-center gap-6 border-l-4 border-primary">
+                <div class="w-14 h-14 bg-primary/10 rounded-m3-lg flex items-center justify-center text-primary">
+                    <span class="material-symbols-outlined text-3xl">payments</span>
+                </div>
+                <div>
+                    <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Receita Recebida</p>
+                    <h3 class="text-2xl font-bold text-secondary">R$ {{ number_format($totalRevenue, 2, ',', '.') }}</h3>
+                </div>
             </div>
-            <div>
-                <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Receita Recebida</p>
-                <h3 class="text-2xl font-bold text-secondary">R$ {{ number_format($totalRevenue, 2, ',', '.') }}</h3>
-            </div>
-        </div>
 
-        <div class="card-m3 p-6 flex items-center gap-6">
-            <div class="w-14 h-14 bg-error/10 rounded-m3-lg flex items-center justify-center text-error">
-                <span class="material-symbols-outlined text-3xl">priority_high</span>
+            <div class="card-m3 p-6 flex items-center gap-6">
+                <div class="w-14 h-14 bg-error/10 rounded-m3-lg flex items-center justify-center text-error">
+                    <span class="material-symbols-outlined text-3xl">priority_high</span>
+                </div>
+                <div>
+                    <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Pendências</p>
+                    <h3 class="text-2xl font-bold text-secondary">{{ $pendingInvoices }} Faturas</h3>
+                </div>
             </div>
-            <div>
-                <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Pendências</p>
-                <h3 class="text-2xl font-bold text-secondary">{{ $pendingInvoices }} Faturas</h3>
+        @else
+            <div class="card-m3 p-6 flex items-center gap-6 col-span-1 md:col-span-2 bg-slate-50/50">
+                <div class="w-14 h-14 bg-slate-200 rounded-m3-lg flex items-center justify-center text-slate-400">
+                    <span class="material-symbols-outlined text-3xl">lock</span>
+                </div>
+                <div>
+                    <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Área Restrita</p>
+                    <p class="text-xs text-slate-400 leading-tight">Métricas financeiras visíveis apenas para administradores.</p>
+                </div>
             </div>
-        </div>
+        @endif
     </div>
 
     {{-- ROI Card e Retenção --}}

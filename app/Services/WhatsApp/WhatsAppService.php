@@ -17,34 +17,66 @@ class WhatsAppService
 
     public function __construct()
     {
-        $this->token = env('WHATSAPP_API_TOKEN');
-        $this->baseUrl = env('WHATSAPP_API_URL', 'https://api.maisbase.com.br/wa');
+        // A ponte roda localmente na porta 3000 por padrão
+        $this->baseUrl = env('WHATSAPP_BRIDGE_URL', 'http://localhost:3000');
     }
 
     /**
-     * Envia uma mensagem de texto simples.
+     * Envia uma mensagem de texto usando a sessão do Tenant atual.
      */
-    public function sendMessage($to, $message)
+    public function sendMessage($to, $message, $tenantId = null)
     {
-        // Higienização do número (LGPD: Ocultar nos logs se necessário)
-        $cleanNumber = preg_replace('/\D/', '', $to);
-        
-        Log::info("WhatsApp: Enviando mensagem para " . substr($cleanNumber, 0, 4) . "****");
+        $tenantId = $tenantId ?: session('tenant_id');
 
-        // Simulação de disparo (Mock para desenvolvimento)
-        if (env('APP_ENV') === 'local') {
-            return ['status' => 'sent', 'id' => uniqid()];
+        if (!$tenantId) {
+            Log::warning("WhatsApp: Tentativa de envio sem tenant_id definido.");
+            return ['status' => 'error', 'message' => 'No tenant ID'];
         }
 
+        $cleanNumber = preg_replace('/\D/', '', $to);
+        
+        Log::info("WhatsApp: Enviando mensagem via Baileys para " . substr($cleanNumber, 0, 4) . "**** (Tenant: {$tenantId})");
+
         try {
-            $response = Http::withToken($this->token)->post("{$this->baseUrl}/send-text", [
-                'number' => $cleanNumber,
+            $response = Http::post("{$this->baseUrl}/send", [
+                'tenantId' => (string) $tenantId,
+                'to' => $cleanNumber,
                 'message' => $message,
             ]);
 
+            if ($response->successful()) {
+                return ['status' => 'sent'];
+            }
+
+            Log::error("Erro no WhatsApp Bridge: " . $response->body());
+            return ['status' => 'error', 'body' => $response->json()];
+        } catch (\Exception $e) {
+            Log::error("Erro de conexão com WhatsApp Bridge: " . $e->getMessage());
+            return ['status' => 'error', 'message' => 'Connection failed'];
+        }
+    }
+
+    /**
+     * Obtém o QR Code ou Status da sessão do Tenant.
+     */
+    public function getStatus($tenantId)
+    {
+        try {
+            $response = Http::timeout(2)->get("{$this->baseUrl}/qr/{$tenantId}");
             return $response->json();
         } catch (\Exception $e) {
-            Log::error("Erro no WhatsApp Service: " . $e->getMessage());
+            return ['status' => 'offline'];
+        }
+    }
+    /**
+     * Reseta a sessão do WhatsApp (Logout + Limpeza de arquivos).
+     */
+    public function disconnect($tenantId)
+    {
+        try {
+            $response = Http::delete("{$this->baseUrl}/session/{$tenantId}");
+            return $response->json();
+        } catch (\Exception $e) {
             return ['status' => 'error'];
         }
     }

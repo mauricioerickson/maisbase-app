@@ -14,6 +14,11 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             \App\Http\Middleware\IdentifyTenant::class,
         ]);
+        
+        $middleware->alias([
+            'role' => \App\Http\Middleware\CheckRole::class,
+        ]);
+
         $middleware->validateCsrfTokens(except: [
             'webhooks/*',
         ]);

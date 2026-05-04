@@ -77,6 +77,7 @@
 
                 <div class="flex gap-2 pt-4 border-t border-slate-50">
                     <x-mary-button label="Matricular" icon="o-academic-cap" class="btn-ghost btn-sm text-primary flex-1" wire:click="openEnrollment({{ $athlete->id }})" />
+                    <x-mary-button icon="o-chat-bubble-left-right" class="btn-ghost btn-sm text-primary" wire:click="openMessageModal({{ $athlete->id }})" title="Enviar Mensagem" />
                     <x-mary-button icon="o-pencil" class="btn-ghost btn-sm text-slate-400" wire:click="edit({{ $athlete->id }})" />
                 </div>
             </div>
@@ -92,6 +93,53 @@
     <div class="fixed bottom-24 right-6 md:hidden">
         <x-mary-button icon="o-plus" class="btn-primary rounded-full w-16 h-16 shadow-2xl" wire:click="create" />
     </div>
+
+    {{-- Modal de Mensagens --}}
+    <x-mary-modal wire:model="showMessageModal" title="Comunicação com Responsável" class="bg-white">
+        @if($selected_athlete_for_enrollment)
+            <div class="space-y-6">
+                <div class="p-4 bg-slate-50 rounded-xl border border-slate-100 flex items-center justify-between">
+                    <div>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Responsável de {{ $selected_athlete_for_enrollment->name }}</p>
+                        <p class="font-bold text-secondary">{{ $selected_athlete_for_enrollment->guardian->name }}</p>
+                        <p class="text-xs text-primary font-mono">{{ $selected_athlete_for_enrollment->guardian->whatsapp_number }}</p>
+                    </div>
+                    <div class="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center text-primary">
+                        <span class="material-symbols-outlined">chat_bubble</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <x-mary-button label="Gerar Nudge IA" icon="o-cpu-chip" class="btn-outline btn-primary btn-sm" 
+                        wire:click="generateAiNudge" spinner="generateAiNudge" />
+                    <x-mary-select label="Assunto IA" wire:model="message_subject" :options="[
+                        ['id' => 'Ausência em Treino', 'name' => 'Ausência'],
+                        ['id' => 'Financeiro Pendente', 'name' => 'Financeiro'],
+                        ['id' => 'Comportamento Excepcional', 'name' => 'Elogio'],
+                        ['id' => 'Aviso de Evento', 'name' => 'Evento'],
+                        ['id' => 'Assunto Geral', 'name' => 'Geral'],
+                    ]" class="select-sm" />
+                </div>
+
+                <x-mary-textarea label="Mensagem para WhatsApp" wire:model="message_content" 
+                    placeholder="Digite a mensagem ou use a IA para gerar..." rows="6" 
+                    hint="A mensagem será enviada diretamente para o WhatsApp do responsável." />
+
+                <div class="bg-primary/5 p-4 rounded-lg border border-primary/10">
+                    <p class="text-[10px] text-primary font-bold uppercase leading-relaxed">
+                        <span class="material-symbols-outlined text-[12px] align-middle">info</span>
+                        Atenção: Esta comunicação é oficial e fica registrada no histórico de interações do aluno.
+                    </p>
+                </div>
+            </div>
+
+            <x-slot:actions>
+                <x-mary-button label="Cancelar" @click="$wire.showMessageModal = false" />
+                <x-mary-button label="Enviar via WhatsApp" icon="o-paper-airplane" class="btn-primary" 
+                    wire:click="sendMessage" spinner="sendMessage" />
+            </x-slot:actions>
+        @endif
+    </x-mary-modal>
 
     {{-- Drawer Cadastro Atleta --}}
     <x-mary-drawer wire:model="showAthleteDrawer" :title="$athlete_id ? 'Editar Ficha do Atleta' : 'Novo Atleta'" right class="w-full md:w-[500px]">

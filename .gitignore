@@ -22,3 +22,8 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# WhatsApp Bridge
+/whatsapp-service/node_modules
+/whatsapp-service/auth_info_*
+/whatsapp-service/.env

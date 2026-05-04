@@ -45,6 +45,60 @@ class AthleteManagement extends Component
 
     public bool $showAthleteDrawer = false;
     public bool $showEnrollmentModal = false;
+    public bool $showMessageModal = false;
+
+    // Mensageria
+    public $message_content = '';
+    public $message_subject = 'Assunto Geral';
+    public $is_ai_generating = false;
+
+    public function openMessageModal($athleteId)
+    {
+        $this->selected_athlete_for_enrollment = Athlete::with('guardian', 'tenant')->find($athleteId);
+        $this->message_content = '';
+        $this->showMessageModal = true;
+    }
+
+    public function generateAiNudge()
+    {
+        $this->is_ai_generating = true;
+        
+        $athlete = $this->selected_athlete_for_enrollment;
+        $ai = new \App\Services\AI\NudgeGenerator();
+        
+        $this->message_content = $ai->generate([
+            'arena_name' => $athlete->tenant->name,
+            'guardian_name' => $athlete->guardian->name,
+            'athlete_name' => $athlete->name,
+            'subject' => $this->message_subject,
+            'extra' => "Solicitação manual via painel administrativo.",
+            'tone' => $athlete->tenant->nudge_tone,
+        ]);
+
+        $this->is_ai_generating = false;
+    }
+
+    public function sendMessage()
+    {
+        $this->validate([
+            'message_content' => 'required|min:5',
+        ]);
+
+        $wa = new \App\Services\WhatsApp\WhatsAppService();
+        $athlete = $this->selected_athlete_for_enrollment;
+
+        $wa->sendMessage($athlete->guardian->whatsapp_number, $this->message_content, $athlete->tenant_id);
+
+        \App\Models\AiNudgeLog::create([
+            'tenant_id' => $athlete->tenant_id,
+            'athlete_id' => $athlete->id,
+            'type' => 'manual',
+            'message' => $this->message_content,
+        ]);
+
+        $this->showMessageModal = false;
+        $this->success('Mensagem enviada com sucesso para o responsável!');
+    }
 
     public function updatingSearch()
     {

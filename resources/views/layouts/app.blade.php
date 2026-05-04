@@ -47,11 +47,15 @@
                     <x-mary-menu-item title="Turmas" icon="o-academic-cap" link="/academic/categorias" />
                     <x-mary-menu-item title="Chamada" icon="o-clipboard-document-check" link="/campo/chamada" />
                     <x-mary-menu-item title="Saúde" icon="o-heart" link="/admin/saude" />
+                    <x-mary-menu-item title="WhatsApp" icon="o-chat-bubble-left-right" link="/admin/whatsapp" />
                     <x-mary-menu-item title="IA Nudges" icon="o-cpu-chip" link="/admin/ia-performance" />
-                    <x-mary-menu-item title="Financeiro" icon="o-currency-dollar" link="/financeiro/fluxo-caixa" />
-                    <x-mary-menu-item title="Previsão" icon="o-presentation-chart-line" link="/financeiro/previsao" />
-                    <x-mary-menu-item title="Planos" icon="o-credit-card" link="/financeiro/planos" />
-                    <x-mary-menu-item title="Equipe" icon="o-identification" link="/equipe" />
+                    
+                    @if(auth()->user()->hasRole(['admin', 'financeiro']))
+                        <x-mary-menu-item title="Financeiro" icon="o-currency-dollar" link="/financeiro/fluxo-caixa" />
+                        <x-mary-menu-item title="Previsão" icon="o-presentation-chart-line" link="/financeiro/previsao" />
+                        <x-mary-menu-item title="Planos" icon="o-credit-card" link="/financeiro/planos" />
+                        <x-mary-menu-item title="Equipe" icon="o-identification" link="/equipe" />
+                    @endif
                     
                     <x-mary-menu-separator />
                     

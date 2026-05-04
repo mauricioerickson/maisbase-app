@@ -8,6 +8,13 @@ if (-not (Test-Path "node_modules")) {
     npm install
 }
 
-# Usando concurrently para rodar ambos os processos simultaneamente
-# Isso é mais robusto no Windows do que tentar rodar processos em background no bash
-npx concurrently "npm run dev" "php artisan serve --host 0.0.0.0:8000" --names "VITE,PHP" --prefix-colors "blue,green"
+# Verifica dependências do WhatsApp Bridge
+if (-not (Test-Path "whatsapp-service/node_modules")) {
+    Write-Host "Instalando dependências do WhatsApp Bridge..." -ForegroundColor Blue
+    Set-Location whatsapp-service
+    npm install
+    Set-Location ..
+}
+
+# Usando concurrently para rodar todos os processos simultaneamente
+npx concurrently "npm run dev" "php artisan serve" "cd whatsapp-service && node index.js" --names "VITE,PHP,WABA" --prefix-colors "blue,green,magenta"

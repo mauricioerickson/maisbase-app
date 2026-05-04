@@ -5,7 +5,7 @@
     "scripts": {
         "build": "vite build",
         "dev": "vite",
-        "dev:all": "concurrently \"vite\" \"php artisan serve --host 0.0.0.0:8000\" --names \"VITE,PHP\" --prefix-colors \"blue,green\""
+        "dev:all": "concurrently \"vite\" \"php artisan serve --host 0.0.0.0:8000\" \"cd whatsapp-service && node index.js\" --names \"VITE,PHP,WABA\" --prefix-colors \"blue,green,magenta\""
     },
     "devDependencies": {
         "@tailwindcss/postcss": "^4.2.4",

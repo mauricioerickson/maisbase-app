@@ -36,7 +36,7 @@ class ProcessRetentionNudges implements ShouldQueue
                 'tone' => $athlete->tenant->nudge_tone,
             ]);
 
-            $wa->sendMessage($athlete->guardian->whatsapp_number, $message);
+            $wa->sendMessage($athlete->guardian->whatsapp_number, $message, $athlete->tenant_id);
 
             AiNudgeLog::create([
                 'tenant_id' => $athlete->tenant_id,

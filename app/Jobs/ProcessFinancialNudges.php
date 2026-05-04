@@ -37,7 +37,7 @@ class ProcessFinancialNudges implements ShouldQueue
                 'tone' => $invoice->athlete->tenant->nudge_tone,
             ]);
 
-            $wa->sendMessage($invoice->athlete->guardian->whatsapp_number, $message);
+            $wa->sendMessage($invoice->athlete->guardian->whatsapp_number, $message, $invoice->tenant_id);
 
             AiNudgeLog::create([
                 'tenant_id' => $invoice->tenant_id,
@@ -63,7 +63,7 @@ class ProcessFinancialNudges implements ShouldQueue
                 'tone' => $invoice->athlete->tenant->nudge_tone,
             ]);
 
-            $wa->sendMessage($invoice->athlete->guardian->whatsapp_number, $message);
+            $wa->sendMessage($invoice->athlete->guardian->whatsapp_number, $message, $invoice->tenant_id);
 
             AiNudgeLog::create([
                 'tenant_id' => $invoice->tenant_id,
