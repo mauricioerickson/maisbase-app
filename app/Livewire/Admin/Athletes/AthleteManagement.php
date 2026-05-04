@@ -192,7 +192,7 @@ class AthleteManagement extends Component
 
         // Geração da Primeira Fatura baseada no Plano do Atleta
         if ($athlete->subscription_plan_id) {
-            $plan = $athlete->plan;
+            $plan = $athlete->subscriptionPlan;
             
             // Calcula a data de vencimento (Próximo dia X definido no plano)
             $dueDate = now()->setDay($plan->due_day);

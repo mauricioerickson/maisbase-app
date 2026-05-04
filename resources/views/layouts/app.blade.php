@@ -36,10 +36,10 @@
             <x-slot:sidebar drawer="main-drawer" collapsible class="bg-secondary text-white">
                 
                 {{-- Logo/Brand --}}
-                <div class="p-6 flex items-center gap-3">
+                <a href="/dashboard" class="p-6 flex items-center gap-3 hover:opacity-80 transition-opacity">
                     <span class="material-symbols-outlined text-primary text-3xl">sports_soccer</span>
                     <span class="font-bold text-xl text-primary font-system tracking-tighter">MaisBase</span>
-                </div>
+                </a>
 
                 {{-- Menu de Navegação --}}
                 <x-mary-menu activate-by-route>
@@ -64,10 +64,10 @@
                 {{-- Top App Bar (Mobile/Desktop Header) --}}
                 <x-mary-nav sticky class="md:hidden border-b border-slate-200">
                     <x-slot:brand>
-                        <div class="flex items-center gap-2">
+                        <a href="/dashboard" class="flex items-center gap-2">
                             <span class="material-symbols-outlined text-primary">sports_soccer</span>
                             <span class="font-bold text-secondary uppercase tracking-tight">MaisBase</span>
-                        </div>
+                        </a>
                     </x-slot:brand>
                     <x-slot:actions>
                         <label for="main-drawer" class="lg:hidden me-3">

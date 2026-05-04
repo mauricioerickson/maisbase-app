@@ -3,30 +3,36 @@
 
 <div class="space-y-8">
     {{-- Estatísticas Superiores --}}
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <x-mary-stat
-            title="Recebido (Mês)"
-            description="Total confirmado via PIX"
-            value="R$ {{ number_format($totalReceived, 2, ',', '.') }}"
-            icon="o-currency-dollar"
-            class="bg-white rounded-m3-lg shadow-sm border-l-4 border-primary"
-        />
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 flex-1 w-full">
+            <x-mary-stat
+                title="Recebido (Mês)"
+                description="Total confirmado via PIX"
+                value="R$ {{ number_format($totalReceived, 2, ',', '.') }}"
+                icon="o-currency-dollar"
+                class="bg-white rounded-m3-lg shadow-sm border-l-4 border-primary"
+            />
 
-        <x-mary-stat
-            title="Pendente"
-            description="Mensalidades em aberto"
-            value="R$ {{ number_format($totalPending, 2, ',', '.') }}"
-            icon="o-clock"
-            class="bg-white rounded-m3-lg shadow-sm"
-        />
+            <x-mary-stat
+                title="Pendente"
+                description="Mensalidades em aberto"
+                value="R$ {{ number_format($totalPending, 2, ',', '.') }}"
+                icon="o-clock"
+                class="bg-white rounded-m3-lg shadow-sm"
+            />
 
-        <x-mary-stat
-            title="Inadimplência"
-            description="Faturas vencidas"
-            value="{{ $overdueCount }} Alunos"
-            icon="o-exclamation-triangle"
-            class="bg-white rounded-m3-lg shadow-sm text-error"
-        />
+            <x-mary-stat
+                title="Inadimplência"
+                description="Faturas vencidas"
+                value="{{ $overdueCount }} Alunos"
+                icon="o-exclamation-triangle"
+                class="bg-white rounded-m3-lg shadow-sm text-error"
+            />
+        </div>
+        
+        <div class="w-full md:w-auto">
+            <x-mary-button label="Gerar Faturas do Mês" icon="o-sparkles" class="btn-primary btn-m3 w-full" wire:click="generateMonthlyInvoices" spinner="generateMonthlyInvoices" />
+        </div>
     </div>
 
     {{-- Área Gráfica e ROI --}}
@@ -48,13 +54,13 @@
         </div>
 
         {{-- ROI e Inteligência --}}
-        <div class="card-m3 p-8 bg-secondary text-white relative overflow-hidden group">
+        <div class="card-m3 p-8 bg-white border border-slate-100 relative overflow-hidden group shadow-sm">
             <div class="relative z-10 h-full flex flex-col">
-                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/20 text-primary text-[10px] font-bold uppercase tracking-widest mb-6">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-widest mb-6 w-fit">
                     <span class="material-symbols-outlined text-xs">auto_awesome</span> Inteligência de Retenção
                 </div>
-                <h3 class="text-2xl font-bold mb-4">Projeção Próximo Mês: <br><span class="text-accent">R$ {{ number_format($totalReceived * 1.1, 2, ',', '.') }}</span></h3>
-                <p class="text-slate-400 text-sm mb-10 leading-relaxed">
+                <h3 class="text-2xl font-bold mb-4 text-secondary">Projeção Próximo Mês: <br><span class="text-primary">R$ {{ number_format($totalReceived * 1.1, 2, ',', '.') }}</span></h3>
+                <p class="text-slate-500 text-sm mb-10 leading-relaxed">
                     Com base no crescimento de atletas ativos e nas matrículas pendentes, prevemos um aumento de 10% na receita bruta.
                 </p>
                 <div class="mt-auto">
@@ -69,9 +75,15 @@
 
     {{-- Lista de Cobranças (Gestão de Recebíveis) --}}
     <div class="card-m3 overflow-hidden bg-white">
-        <div class="p-6 border-b border-slate-100 flex justify-between items-center">
-            <h3 class="text-lg font-bold text-secondary uppercase tracking-tight">Gestão de Recebíveis</h3>
-            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Últimas 10 Faturas</span>
+        <div class="p-6 border-b border-slate-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+                <h3 class="text-lg font-bold text-secondary uppercase tracking-tight">Gestão de Recebíveis</h3>
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Últimas Faturas</span>
+            </div>
+            
+            <div class="w-full md:w-64">
+                <x-mary-input placeholder="Buscar por atleta..." wire:model.live.debounce.300ms="search" icon="o-magnifying-glass" clearable />
+            </div>
         </div>
         
         <x-mary-table :rows="$invoices" :headers="[
@@ -105,7 +117,7 @@
             @scope('actions', $invoice)
                 <div class="flex gap-2">
                     @if($invoice->status === 'pending')
-                        <x-mary-button label="Baixar" icon="o-check" class="btn-ghost btn-xs text-primary" wire:click="markAsPaid({{ $invoice->id }})" wire:confirm="Confirmar recebimento manual desta fatura?" />
+                        <x-mary-button label="Baixar" icon="o-check" class="btn-ghost btn-xs text-primary" wire:click="confirmPayment({{ $invoice->id }})" />
                     @endif
                     <x-mary-button icon="o-trash" class="btn-ghost btn-xs text-error" wire:click="delete({{ $invoice->id }})" wire:confirm="Deseja realmente cancelar esta cobrança?" />
                 </div>
@@ -116,4 +128,29 @@
             {{ $invoices->links() }}
         </div>
     </div>
+
+    {{-- Modal de Baixa Manual (Recebimento) --}}
+    <x-mary-modal wire:model="showPaymentModal" title="Confirmar Recebimento" class="backdrop-blur">
+        <div class="space-y-6">
+            <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Atleta</div>
+                <div class="text-lg font-bold text-secondary">{{ $selectedInvoiceAthlete }}</div>
+                <div class="text-xl font-black text-primary mt-2">R$ {{ number_format($selectedInvoiceAmount, 2, ',', '.') }}</div>
+            </div>
+
+            <x-mary-input label="Data do Pagamento" type="date" wire:model="paymentDate" icon="o-calendar" required />
+            
+            <x-mary-select label="Forma de Recebimento" wire:model="paymentMethod" icon="o-wallet" 
+                :options="$paymentMethods" required />
+
+            <div class="text-xs text-slate-400 italic">
+                Ao confirmar, o status da fatura será alterado para "Pago" e os indicadores financeiros do mês serão atualizados.
+            </div>
+        </div>
+
+        <x-slot:actions>
+            <x-mary-button label="Cancelar" @click="$wire.showPaymentModal = false" />
+            <x-mary-button label="Confirmar Recebimento" icon="o-check" class="btn-primary" wire:click="processPayment" spinner="processPayment" />
+        </x-slot:actions>
+    </x-mary-modal>
 </div>
