@@ -10,6 +10,8 @@ use Carbon\Carbon;
 
 class Dashboard extends Component
 {
+    use \Mary\Traits\Toast;
+
     public function render()
     {
         $startOfMonth = Carbon::now()->startOfMonth();
@@ -21,14 +23,18 @@ class Dashboard extends Component
             ->sum('amount');
 
         $totalPending = Invoice::where('status', 'pending')
-            ->where('due_date', '<=', $endOfMonth)
             ->sum('amount');
 
         $overdueCount = Invoice::where('status', 'pending')
-            ->where('due_date', '<', Carbon::now())
+            ->where('due_date', '<', Carbon::now()->startOfDay())
             ->count();
 
-        // Dados para Gráfico Simples (Simulado para este MVP)
+        // Lista de Faturas Recentes/Pendentes
+        $invoices = Invoice::with('athlete')
+            ->latest('due_date')
+            ->paginate(10);
+
+        // Dados para Gráfico Simples
         $chartData = [
             'labels' => ['Recebido', 'Pendente'],
             'datasets' => [
@@ -45,6 +51,30 @@ class Dashboard extends Component
             'totalPending' => $totalPending,
             'overdueCount' => $overdueCount,
             'chartData' => $chartData,
+            'invoices' => $invoices,
         ])->layout('layouts.app');
+    }
+
+    /**
+     * Realiza a baixa manual de um recebimento.
+     */
+    public function markAsPaid($id)
+    {
+        $invoice = Invoice::findOrFail($id);
+        $invoice->update([
+            'status' => 'paid',
+            'paid_at' => now(),
+        ]);
+
+        $this->success('Recebimento confirmado com sucesso!');
+    }
+
+    /**
+     * Remove uma fatura (Cancelamento).
+     */
+    public function delete($id)
+    {
+        Invoice::findOrFail($id)->delete();
+        $this->success('Fatura cancelada.');
     }
 }

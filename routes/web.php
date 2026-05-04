@@ -67,6 +67,7 @@ Route::middleware(['auth', \App\Http\Middleware\IdentifyTenant::class])->group(f
     Route::get('/atletas', \App\Livewire\Admin\Athletes\AthleteManagement::class)->name('athletes');
     Route::get('/financeiro/planos', \App\Livewire\Admin\Financial\PlanManagement::class)->name('financial.plans');
     Route::get('/financeiro/fluxo-caixa', \App\Livewire\Admin\Financial\Dashboard::class)->name('financial.dashboard');
+    Route::get('/financeiro/previsao', \App\Livewire\Admin\Financial\RevenueForecast::class)->name('financial.forecast');
     Route::get('/campo/chamada', \App\Livewire\Field\AttendanceSession::class)->name('field.attendance');
     Route::get('/admin/saude', \App\Livewire\Admin\Health\MedicalManagement::class)->name('admin.health');
     Route::get('/admin/ia-performance', \App\Livewire\Admin\Reports\AiPerformance::class)->name('admin.ai');

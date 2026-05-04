@@ -30,6 +30,7 @@ class AthleteManagement extends Component
     public $position;
     public $status = 'ativo';
     public $guardian_id;
+    public $subscription_plan_id;
 
     // Form Responsável
     public $guardian_name;
@@ -52,7 +53,7 @@ class AthleteManagement extends Component
 
     public function create()
     {
-        $this->reset(['athlete_id', 'name', 'birth_date', 'position', 'status', 'guardian_id', 'guardian_name', 'whatsapp_number', 'guardian_document', 'creatingNewGuardian']);
+        $this->reset(['athlete_id', 'name', 'birth_date', 'position', 'status', 'guardian_id', 'guardian_name', 'whatsapp_number', 'guardian_document', 'creatingNewGuardian', 'subscription_plan_id']);
         $this->showAthleteDrawer = true;
     }
 
@@ -65,6 +66,7 @@ class AthleteManagement extends Component
         $this->position = $athlete->position;
         $this->status = $athlete->status;
         $this->guardian_id = $athlete->guardian_id;
+        $this->subscription_plan_id = $athlete->subscription_plan_id;
         $this->creatingNewGuardian = false;
         
         $this->showAthleteDrawer = true;
@@ -87,12 +89,14 @@ class AthleteManagement extends Component
 
         $guardians = Guardian::all();
         $categories = \App\Models\Category::all();
+        $plans = \App\Models\SubscriptionPlan::all();
         $schedules = Schedule::with('category')->withCount('enrollments')->get();
 
         return view('livewire.admin.athletes.athlete-management', [
             'athletes' => $athletes,
             'guardians' => $guardians,
             'categories' => $categories,
+            'plans' => $plans,
             'schedules' => $schedules,
         ])->layout('layouts.app');
     }
@@ -103,6 +107,7 @@ class AthleteManagement extends Component
             'name' => 'required|min:3',
             'birth_date' => 'required|date',
             'position' => 'nullable',
+            'subscription_plan_id' => 'required|exists:subscription_plans,id',
             'guardian_id' => $this->creatingNewGuardian ? 'nullable' : 'required|exists:guardians,id',
             'guardian_name' => $this->creatingNewGuardian ? 'required|min:3' : 'nullable',
             'whatsapp_number' => $this->creatingNewGuardian ? 'required|min:10' : 'nullable',
@@ -127,11 +132,12 @@ class AthleteManagement extends Component
                     'position' => $this->position,
                     'status' => $this->status,
                     'guardian_id' => $this->guardian_id,
+                    'subscription_plan_id' => $this->subscription_plan_id,
                 ]
             );
         });
 
-        $this->reset(['athlete_id', 'name', 'birth_date', 'position', 'status', 'guardian_id', 'guardian_name', 'whatsapp_number', 'guardian_document', 'creatingNewGuardian', 'showAthleteDrawer']);
+        $this->reset(['athlete_id', 'name', 'birth_date', 'position', 'status', 'guardian_id', 'guardian_name', 'whatsapp_number', 'guardian_document', 'creatingNewGuardian', 'subscription_plan_id', 'showAthleteDrawer']);
         $this->success('Atleta salvo com sucesso!');
     }
 
@@ -183,6 +189,24 @@ class AthleteManagement extends Component
             'schedule_id' => $schedule->id,
             'technical_exception' => $this->technical_exception,
         ]);
+
+        // Geração da Primeira Fatura baseada no Plano do Atleta
+        if ($athlete->subscription_plan_id) {
+            $plan = $athlete->plan;
+            
+            // Calcula a data de vencimento (Próximo dia X definido no plano)
+            $dueDate = now()->setDay($plan->due_day);
+            if ($dueDate->isPast()) {
+                $dueDate->addMonth();
+            }
+
+            Invoice::create([
+                'athlete_id' => $athlete->id,
+                'amount' => $plan->amount,
+                'due_date' => $dueDate,
+                'status' => 'pending',
+            ]);
+        }
 
         $this->reset(['selected_schedule_id', 'technical_exception', 'showEnrollmentModal']);
         $this->success('Matrícula realizada com sucesso!');

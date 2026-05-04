@@ -100,6 +100,7 @@
             <div class="space-y-4">
                 <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100 pb-2">Informações Esportivas</div>
                 <x-mary-input label="Nome Completo" wire:model="name" icon="o-user" required />
+                <x-mary-select label="Plano de Mensalidade" wire:model="subscription_plan_id" icon="o-credit-card" :options="$plans" placeholder="Selecione um plano..." required />
                 <div class="grid grid-cols-2 gap-4">
                     <x-mary-input label="Nascimento" type="date" wire:model="birth_date" icon="o-calendar" required />
                     <x-mary-select label="Posição" wire:model="position" icon="o-map-pin" :options="[

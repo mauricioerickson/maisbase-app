@@ -15,6 +15,7 @@ class SubscriptionPlan extends Model
         'tenant_id',
         'name',
         'amount',
+        'due_day',
         'billing_cycle_days',
         'description',
     ];

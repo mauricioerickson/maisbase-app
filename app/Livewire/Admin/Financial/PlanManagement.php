@@ -15,6 +15,7 @@ class PlanManagement extends Component
     public $planId;
     public $name;
     public $amount;
+    public $due_day = 10;
     public $billing_cycle_days = 30;
     public $description;
 
@@ -43,6 +44,7 @@ class PlanManagement extends Component
         $this->planId = $plan->id;
         $this->name = $plan->name;
         $this->amount = $plan->amount;
+        $this->due_day = $plan->due_day;
         $this->billing_cycle_days = $plan->billing_cycle_days;
         $this->description = $plan->description;
         
@@ -63,6 +65,7 @@ class PlanManagement extends Component
                 [
                     'name' => $this->name,
                     'amount' => $this->amount,
+                    'due_day' => $this->due_day,
                     'billing_cycle_days' => $this->billing_cycle_days,
                     'description' => $this->description,
                 ]

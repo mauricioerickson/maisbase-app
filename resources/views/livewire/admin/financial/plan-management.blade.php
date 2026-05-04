@@ -44,7 +44,10 @@
             <div class="space-y-4">
                 <x-mary-input label="Nome do Plano" wire:model="name" placeholder="Ex: Mensalidade Padrão" icon="o-tag" />
                 
-                <x-mary-input label="Valor (R$)" type="number" step="0.01" wire:model="amount" icon="o-currency-dollar" />
+                <div class="grid grid-cols-2 gap-4">
+                    <x-mary-input label="Valor (R$)" type="number" step="0.01" wire:model="amount" icon="o-currency-dollar" />
+                    <x-mary-input label="Dia de Vencimento" type="number" min="1" max="31" wire:model="due_day" icon="o-calendar-days" />
+                </div>
                 
                 <x-mary-input label="Ciclo de Cobrança (Dias)" type="number" wire:model="billing_cycle_days" icon="o-calendar" />
                 
