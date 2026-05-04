@@ -48,7 +48,7 @@
                     Nossa IA detectou atletas com alto risco de evasão baseado nas faltas recentes.
                 </p>
                 <div class="mt-auto">
-                    <x-mary-button label="Ver Relatório Completo" icon="o-chart-bar" class="btn-primary btn-m3 w-full" />
+                    <x-mary-button label="Ver Relatório Completo" icon="o-chart-bar" class="btn-primary btn-m3 w-full" wire:click="viewFullReport" spinner="viewFullReport" />
                 </div>
             </div>
         </div>

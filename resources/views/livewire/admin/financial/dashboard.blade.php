@@ -64,7 +64,7 @@
                     Com base no crescimento de atletas ativos e nas matrículas pendentes, prevemos um aumento de 10% na receita bruta.
                 </p>
                 <div class="mt-auto">
-                    <x-mary-button label="Gerar Relatório Detalhado" icon="o-document-chart-bar" class="btn-primary btn-m3 w-full" />
+                    <x-mary-button label="Gerar Relatório Detalhado" icon="o-document-chart-bar" class="btn-primary btn-m3 w-full" wire:click="generateDetailedReport" spinner="generateDetailedReport" />
                 </div>
             </div>
             <div class="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-all">

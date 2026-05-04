@@ -55,7 +55,7 @@
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div class="lg:col-span-2 card-m3 p-8 bg-secondary text-white relative overflow-hidden">
             <div class="relative z-10">
-                <h3 class="text-xl font-bold mb-4 uppercase tracking-tight">Análise de Crescimento</h3>
+                <h3 class="text-xl text-secondary font-bold mb-4 uppercase tracking-tight">Análise de Crescimento</h3>
                 <p class="text-slate-400 text-sm leading-relaxed mb-6">
                     Sua arena possui um ticket médio de **R$ {{ $totalAthletes > 0 ? number_format($totalMRR / $totalAthletes, 2, ',', '.') : '0,00' }}**. 
                     Para atingir a meta de R$ {{ number_format($totalMRR * 1.2, 2, ',', '.') }} no próximo mês, você precisa converter aproximadamente 

@@ -7,6 +7,7 @@ namespace App\Livewire\Admin\Financial;
 use Livewire\Component;
 use App\Models\Invoice;
 use App\Models\Athlete;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 
 class Dashboard extends Component
@@ -114,6 +115,46 @@ class Dashboard extends Component
     {
         Invoice::findOrFail($id)->delete();
         $this->success('Fatura cancelada.');
+    }
+
+    /**
+     * Gera e baixa um relatório detalhado de ROI e Retenção em formato PDF.
+     */
+    public function generateDetailedReport()
+    {
+        $startOfMonth = Carbon::now()->startOfMonth();
+        $endOfMonth = Carbon::now()->endOfMonth();
+
+        // Cálculo das Métricas
+        $totalReceived = Invoice::where('status', 'paid')
+            ->whereBetween('paid_at', [$startOfMonth, $endOfMonth])
+            ->sum('amount');
+
+        $totalPending = Invoice::where('status', 'pending')
+            ->sum('amount');
+
+        $overdueCount = Invoice::where('status', 'pending')
+            ->where('due_date', '<', Carbon::now()->startOfDay())
+            ->count();
+
+        $efficiency = ($totalReceived + $totalPending) > 0 ? ($totalReceived / ($totalReceived + $totalPending)) * 100 : 0;
+
+        $data = [
+            'totalReceived' => $totalReceived,
+            'totalPending' => $totalPending,
+            'overdueCount' => $overdueCount,
+            'efficiency' => $efficiency,
+        ];
+
+        $pdf = Pdf::loadView('reports.roi-pdf', $data);
+
+        $fileName = 'relatorio-detalhado-roi-' . now()->format('Y-m-d') . '.pdf';
+
+        $this->success('Relatório PDF gerado! O download iniciará automaticamente.');
+
+        return response()->streamDownload(function () use ($pdf) {
+            echo $pdf->output();
+        }, $fileName);
     }
 
     /**
